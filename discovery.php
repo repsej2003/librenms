@@ -15,7 +15,7 @@ $start = microtime(true);
 $sqlparams = [];
 $options = getopt('h:m:i:n:d::v::a::q', ['os:', 'type:']);
 
-if (! isset($options['q'])) {
+if (!isset($options['q'])) {
     echo \LibreNMS\Config::get('project_name') . " Discovery\n";
 }
 
@@ -81,7 +81,7 @@ EOH;
     \LibreNMS\Util\OS::updateCache(true); // Force update of OS Cache
 }
 
-if (! $where) {
+if (!$where) {
     echo "-h <device id> | <device hostname wildcard>  Poll single device\n";
     echo "-h odd             Poll odd numbered devices  (same as -i 2 -n 0)\n";
     echo "-h even            Poll even numbered devices (same as -i 2 -n 1)\n";
@@ -106,7 +106,7 @@ $module_override = parse_modules('discovery', $options);
 
 $discovered_devices = 0;
 
-if (! empty(\LibreNMS\Config::get('distributed_poller_group'))) {
+if (!empty(\LibreNMS\Config::get('distributed_poller_group'))) {
     $where .= ' AND poller_group IN(' . \LibreNMS\Config::get('distributed_poller_group') . ')';
 }
 
@@ -142,7 +142,7 @@ if (isset($new_discovery_lock)) {
 $string = $argv[0] . " $doing " . date(\LibreNMS\Config::get('dateformat.compact')) . " - $discovered_devices devices discovered in $proctime secs";
 d_echo("$string\n");
 
-if (! isset($options['q'])) {
+if (!isset($options['q'])) {
     printStats();
 }
 
