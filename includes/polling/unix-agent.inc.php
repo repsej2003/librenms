@@ -19,11 +19,11 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
     stream_set_timeout($agent, \LibreNMS\Config::get('unix-agent.read-timeout'));
     $agentinfo = stream_get_meta_data($agent);
 
-    if (! $agent) {
+    if (!$agent) {
         echo 'Connection to UNIX agent failed on port ' . $agent_port . '.';
     } else {
         // fetch data while not eof and not timed-out
-        while ((! feof($agent)) && (! $agentinfo['timed_out'])) {
+        while ((!feof($agent)) && (!$agentinfo['timed_out'])) {
             $agent_raw .= fgets($agent, 128);
             $agentinfo = stream_get_meta_data($agent);
         }
@@ -36,7 +36,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
     $agent_end = microtime(true);
     $agent_time = round(($agent_end - $agent_start) * 1000);
 
-    if (! empty($agent_raw)) {
+    if (!empty($agent_raw)) {
         echo 'execution time: ' . $agent_time . 'ms';
 
         $tags = [
@@ -55,6 +55,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
             'ceph',
             'mysql',
             'nginx',
+            'conntrack',
             'powerdns',
             'powerdns-recursor',
             'proxmox',
@@ -71,7 +72,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
                 $agent_data['app'][$section] = trim($data);
             }
 
-            if (! empty($sa) && ! empty($sb)) {
+            if (!empty($sa) && !empty($sb)) {
                 $agent_data[$sa][$sb] = trim($data);
             } else {
                 $agent_data[$section] = trim($data);
@@ -92,14 +93,14 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
         }
 
         // Unix Processes
-        if (! empty($agent_data['ps'])) {
+        if (!empty($agent_data['ps'])) {
             echo 'Processes: ';
             dbDelete('processes', 'device_id = ?', [$device['device_id']]);
             $data = [];
             foreach (explode("\n", $agent_data['ps']) as $process) {
                 $process = preg_replace('/\((.*),([0-9]*),([0-9]*),([0-9\:\.\-]*),([0-9]*)\)\ (.*)/', '\\1|\\2|\\3|\\4|\\5|\\6', $process);
                 [$user, $vsz, $rss, $cputime, $pid, $command] = explode('|', $process, 6);
-                if (! empty($command)) {
+                if (!empty($command)) {
                     $data[] = ['device_id' => $device['device_id'], 'pid' => $pid, 'user' => $user, 'vsz' => $vsz, 'rss' => $rss, 'cputime' => $cputime, 'command' => $command];
                 }
             }
@@ -110,14 +111,14 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
         }
 
         // Windows Processes
-        if (! empty($agent_data['ps:sep(9)'])) {
+        if (!empty($agent_data['ps:sep(9)'])) {
             echo 'Processes: ';
             dbDelete('processes', 'device_id = ?', [$device['device_id']]);
             $data = [];
             foreach (explode("\n", $agent_data['ps:sep(9)']) as $process) {
                 $process = preg_replace('/\(([^,;]+),([0-9]*),([0-9]*),([0-9]*),([0-9]*),([0-9]*),([0-9]*),([0-9]*),([0-9]*),([0-9]*)?,?([0-9]*)\)(.*)/', '\\1|\\2|\\3|\\4|\\5|\\6|\\7|\\8|\\9|\\10|\\11|\\12', $process);
                 [$user, $VirtualSize, $WorkingSetSize, $zero, $processId, $PageFileUsage, $UserModeTime, $KernelModeTime, $HandleCount, $ThreadCount, $uptime, $process_name] = explode('|', $process, 12);
-                if (! empty($process_name)) {
+                if (!empty($process_name)) {
                     $cputime = ($UserModeTime + $KernelModeTime) / 10000000;
                     $days = floor($cputime / 86400);
                     $hours = str_pad(floor(($cputime / 3600) % 24), 2, '0', STR_PAD_LEFT);
@@ -147,7 +148,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
         }
 
         // memcached
-        if (! empty($agent_data['app']['memcached'])) {
+        if (!empty($agent_data['app']['memcached'])) {
             $agent_data['app']['memcached'] = unserialize($agent_data['app']['memcached']);
             foreach ($agent_data['app']['memcached'] as $memcached_host => $memcached_data) {
                 if (dbFetchCell('SELECT COUNT(*) FROM `applications` WHERE `device_id` = ? AND `app_type` = ? AND `app_instance` = ?', [$device['device_id'], 'memcached', $memcached_host]) == '0') {
@@ -158,7 +159,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
         }
 
         // DRBD
-        if (! empty($agent_data['drbd'])) {
+        if (!empty($agent_data['drbd'])) {
             $agent_data['app']['drbd'] = [];
             foreach (explode("\n", $agent_data['drbd']) as $drbd_entry) {
                 [$drbd_dev, $drbd_data] = explode(':', $drbd_entry);
@@ -189,7 +190,7 @@ if ($device['os_group'] == 'unix' || $device['os'] == 'windows') {
         DeviceCache::getPrimary()->save();
     }
 
-    if (! empty($agent_sensors)) {
+    if (!empty($agent_sensors)) {
         echo 'Sensors: ';
         check_valid_sensors($device, 'temperature', $valid['sensor'], 'agent');
         d_echo($agent_sensors);
