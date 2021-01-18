@@ -14,7 +14,7 @@ $conntrack = trim($conntrack, '"');
 
 echo ' conntrack';
 
-$connctions = (int)$conntrack;
+$connctions = $conntrack;
 d_echo("connctions: $connctions\n");
 
 $rrd_name = ['app', $name, $app_id];
@@ -22,7 +22,7 @@ $rrd_def = RrdDefinition::make()
     ->addDataset('Connctions', 'GAUGE', 0, 125000000000);
 
 $fields = [
-    'Connctions' => 10,
+    'Connctions' => $connctions,
 ];
 
 $tags = compact('name', 'app_id', 'rrd_name', 'rrd_def');
