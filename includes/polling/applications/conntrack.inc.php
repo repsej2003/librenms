@@ -4,17 +4,9 @@ use LibreNMS\RRD\RrdDefinition;
 
 $name = 'conntrack';
 $app_id = $app['app_id'];
-if (!empty($agent_data['app'][$name])) {
-    $conntrack = $agent_data['app'][$name];
-} else {
-    // Polls conntrack statistics from script via SNMP
-    $conntrack = snmp_get($device, '.1.3.6.1.4.1.8072.1.3.2.3.1.2.5.110.103.105.110.120', '-Ovq');
-}
-$conntrack = trim($conntrack, '"');
 
-echo ' conntrack';
+$connctions = $agent_data['app'][$name];
 
-$connctions = $conntrack;
 d_echo("connctions: $connctions\n");
 
 $rrd_name = ['app', $name, $app_id];
